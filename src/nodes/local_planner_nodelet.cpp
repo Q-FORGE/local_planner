@@ -86,11 +86,12 @@ void LocalPlannerNodelet::InitializeNodelet() {
   // distance_sensor_sub_ = nh_.subscribe("/mavros/altitude", 1, &LocalPlannerNodelet::distanceSensorCallback, this);
   // mavros_vel_setpoint_pub_ = nh_.advertise<geometry_msgs::Twist>("/mavros/setpoint_velocity/cmd_vel_unstamped", 10);
   mavros_pos_setpoint_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("/red/tracker/input_pose", 10);
+  transformed_cloud_ = nh_.advertise<sensor_msgs::PointCloud2>("transformed_cloud", 10);
   // mavros_obstacle_free_path_pub_ = nh_.advertise<mavros_msgs::Trajectory>("/mavros/trajectory/generated", 10);
   // mavros_obstacle_distance_pub_ = nh_.advertise<sensor_msgs::LaserScan>("/mavros/obstacle/send", 10);
 
   // initialize visualization topics
-  // visualizer_.initializePublishers(nh_);
+  visualizer_.initializePublishers(nh_);
 
   // pass initial goal into local planner
   local_planner_->applyGoal();
@@ -294,7 +295,7 @@ void LocalPlannerNodelet::calculateWaypoints(bool hover) {
 
   Eigen::Vector3f closest_pt = Eigen::Vector3f(NAN, NAN, NAN);
   Eigen::Vector3f deg60_pt = Eigen::Vector3f(NAN, NAN, NAN);
-  // wp_generator_->getOfftrackPointsForVisualization(closest_pt, deg60_pt);
+  wp_generator_->getOfftrackPointsForVisualization(closest_pt, deg60_pt);
 
   last_waypoint_position_ = newest_waypoint_position_;
   newest_waypoint_position_ = result.smoothed_goto_position;
@@ -302,13 +303,13 @@ void LocalPlannerNodelet::calculateWaypoints(bool hover) {
   newest_adapted_waypoint_position_ = result.adapted_goto_position;
 
   // // visualize waypoint topics
-  // visualizer_.visualizeWaypoints(result.goto_position, result.adapted_goto_position, result.smoothed_goto_position);
-  // visualizer_.publishPaths(last_position_, newest_position_, last_waypoint_position_, newest_waypoint_position_,
-  //                          last_adapted_waypoint_position_, newest_adapted_waypoint_position_);
-  // visualizer_.publishCurrentSetpoint(toTwist(result.linear_velocity_wp, result.angular_velocity_wp),
-  //                                    result.waypoint_type, newest_position_);
+  visualizer_.visualizeWaypoints(result.goto_position, result.adapted_goto_position, result.smoothed_goto_position);
+  visualizer_.publishPaths(last_position_, newest_position_, last_waypoint_position_, newest_waypoint_position_,
+                           last_adapted_waypoint_position_, newest_adapted_waypoint_position_);
+  visualizer_.publishCurrentSetpoint(toTwist(result.linear_velocity_wp, result.angular_velocity_wp),
+                                     result.waypoint_type, newest_position_);
 
-  // visualizer_.publishOfftrackPoints(closest_pt, deg60_pt);
+  visualizer_.publishOfftrackPoints(closest_pt, deg60_pt);
 
   // send waypoints to mavros
   // mavros_msgs::Trajectory obst_free_path = {};
@@ -317,7 +318,7 @@ void LocalPlannerNodelet::calculateWaypoints(bool hover) {
 
   ros::Time now = ros::Time::now();
   ros::Duration since_last_pub_ = now - last_pub_;
-  if (since_last_pub_ >= ros::Duration(1.0)){
+  if (since_last_pub_ >= ros::Duration(1.)){
     publish_target_ = true;
   }
 
@@ -443,7 +444,7 @@ void LocalPlannerNodelet::pointCloudCallback(const sensor_msgs::PointCloud2::Con
     std::pair<std::string, std::string> transform_frames;
     transform_frames.first = msg->header.frame_id;
     // ROS_ERROR(transform_frames.first.c_str());
-    transform_frames.second = "/red/camera";
+    transform_frames.second = "world";
     buffered_transforms_.push_back(transform_frames);
     transform_frames.second = "/red/camera_box";
     buffered_transforms_.push_back(transform_frames);
@@ -492,8 +493,8 @@ void LocalPlannerNodelet::threadFunction() {
     // ROS_DEBUG("Running Planner....");
     local_planner_->runPlanner();
 
-    // visualizer_.visualizePlannerData(*(local_planner_.get()), newest_waypoint_position_,
-    //                                  newest_adapted_waypoint_position_, newest_position_, newest_orientation_);
+    visualizer_.visualizePlannerData(*(local_planner_.get()), newest_waypoint_position_,
+                                     newest_adapted_waypoint_position_, newest_position_, newest_orientation_);
     // publishLaserScan();
 
     std::lock_guard<std::mutex> lock(waypoints_mutex_);
@@ -542,7 +543,7 @@ void LocalPlannerNodelet::pointCloudTransformThread(int index) {
         //                             pcl_conversions::fromPCL(cameras_[index].untransformed_cloud_.header.stamp),
         //                             fcu_transform));
 
-        if (tf_buffer_.getTransform(cameras_[index].untransformed_cloud_.header.frame_id, "/red/camera",
+        if (tf_buffer_.getTransform(cameras_[index].untransformed_cloud_.header.frame_id, "world",
                                     pcl_conversions::fromPCL(cameras_[index].untransformed_cloud_.header.stamp),
                                     cloud_transform)) {
           // remove nan padding and compute fov
@@ -555,8 +556,10 @@ void LocalPlannerNodelet::pointCloudTransformThread(int index) {
           // transform cloud to /local_origin frame
           pcl_ros::transformPointCloud(cameras_[index].untransformed_cloud_, cameras_[index].transformed_cloud_,
                                        cloud_transform);
-          cameras_[index].transformed_cloud_.header.frame_id = "/red/camera";
+          cameras_[index].transformed_cloud_.header.frame_id = "world";
           cameras_[index].transformed_cloud_.header.stamp = cameras_[index].untransformed_cloud_.header.stamp;
+
+          transformed_cloud_.publish(cameras_[index].transformed_cloud_);
 
           // ROS_DEBUG("Point Cloud Transformed");
 

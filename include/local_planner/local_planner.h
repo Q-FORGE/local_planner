@@ -16,7 +16,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
-// #include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/PointCloud2.h>
 
 // #include <nav_msgs/GridCells.h>
@@ -36,10 +36,10 @@ class LocalPlanner {
  private:
   int children_per_node_;
   int n_expanded_nodes_;
-  int min_num_points_per_cell_ = 3;
+  int min_num_points_per_cell_ = 20;
 
-  float min_sensor_range_ = 0.2f;
-  float max_sensor_range_ = 12.0f;
+  float min_sensor_range_ = 0.8f;
+  float max_sensor_range_ = 10.0f;
   float smoothing_margin_degrees_ = 30.f;
   float max_point_age_s_ = 10;
   float yaw_fcu_frame_deg_ = 0.0f;
@@ -100,7 +100,7 @@ class LocalPlanner {
 
   ModelParameters px4_;  // PX4 Firmware paramters
 
-  // sensor_msgs::LaserScan distance_data_ = {};
+  sensor_msgs::LaserScan distance_data_ = {};
   Eigen::Vector3f last_sent_waypoint_ = Eigen::Vector3f::Zero();
 
   // original_cloud_vector_ contains n complete clouds from the cameras
@@ -142,7 +142,7 @@ class LocalPlanner {
   float getHFOV(int i) { return i < fov_fcu_frame_.size() ? fov_fcu_frame_[i].h_fov_deg : 0.f; }
   float getVFOV(int i) { return i < fov_fcu_frame_.size() ? fov_fcu_frame_[i].v_fov_deg : 0.f; }
   const std::vector<FOV>& getFOV() const { return fov_fcu_frame_; }
-  // float getSensorRange() const { return max_sensor_range_; }
+  float getSensorRange() const { return max_sensor_range_; }
 
   /**
   * @brief     getter method for current goal
@@ -190,7 +190,7 @@ class LocalPlanner {
   * @brief     getter method for obstacle distance information
   * @param     obstacle_distance, obstacle distance message to fill
   **/
-  // void getObstacleDistanceData(sensor_msgs::LaserScan& obstacle_distance);
+  void getObstacleDistanceData(sensor_msgs::LaserScan& obstacle_distance);
 
   /**
   * @brief     getter method of the local planner algorithm

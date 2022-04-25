@@ -370,6 +370,8 @@ void WaypointGenerator::adaptSpeed(float dt) {
       p_pol_fcu.z -= RAD_TO_DEG * curr_yaw_rad_;
       wrapPolar(p_pol_fcu);
       speed_ *= scaleToFOV(fov_fcu_frame_, p_pol_fcu);
+
+      ROS_INFO("SCALE by %f", scaleToFOV(fov_fcu_frame_, p_pol_fcu));
     }
     heading_at_goal_rad_ = NAN;
   }
@@ -380,7 +382,11 @@ void WaypointGenerator::adaptSpeed(float dt) {
   // Scale the pose_to_wp by the speed
   Eigen::Vector3f pose_to_wp = output_.goto_position - position_;
   if (pose_to_wp.norm() > 0.1f) pose_to_wp.normalize();
-  pose_to_wp *= speed_;
+  // pose_to_wp *= speed_;
+
+  // ROS_INFO("SPEED TO ADAPT %f", speed_);
+
+  // ROS_INFO("POSE TO WP: [%f %f %f].", pose_to_wp.x(), pose_to_wp.y(), pose_to_wp.z());
 
   output_.adapted_goto_position = position_ + pose_to_wp;
 
@@ -460,11 +466,11 @@ void WaypointGenerator::setPlannerInfo(const avoidanceOutput& input) {
   planner_info_ = input;
 }
 
-// void WaypointGenerator::getOfftrackPointsForVisualization(Eigen::Vector3f& closest_pt, Eigen::Vector3f& deg60_pt) {
-//   std::lock_guard<std::mutex> lock(running_mutex_);
-//   closest_pt.x() = closest_pt_.x();
-//   closest_pt.y() = closest_pt_.y();
-//   closest_pt.z() = goal_.z();
-//   deg60_pt = tmp_goal_;
-// }
+void WaypointGenerator::getOfftrackPointsForVisualization(Eigen::Vector3f& closest_pt, Eigen::Vector3f& deg60_pt) {
+  std::lock_guard<std::mutex> lock(running_mutex_);
+  closest_pt.x() = closest_pt_.x();
+  closest_pt.y() = closest_pt_.y();
+  closest_pt.z() = goal_.z();
+  deg60_pt = tmp_goal_;
+}
 }

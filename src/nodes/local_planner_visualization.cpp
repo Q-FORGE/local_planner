@@ -59,10 +59,10 @@ void LocalPlannerVisualization::visualizePlannerData(const LocalPlanner& planner
                     newest_adapted_waypoint_position, newest_position, newest_orientation);
 
   // publish the FOV
-  publishFOV(planner.getFOV(), planner.getSensorRange());
+  publishFOV(planner.getFOV(), 6.f);
 
   // range scan
-  publishRangeScan(planner.distance_data_, newest_position);
+  // publishRangeScan(planner.distance_data_, newest_position);
 }
 
 void LocalPlannerVisualization::publishFOV(const std::vector<FOV>& fov_vec, float max_range) const {
@@ -78,7 +78,7 @@ void LocalPlannerVisualization::publishFOV(const std::vector<FOV>& fov_vec, floa
                   max_range);
 
     visualization_msgs::Marker m;
-    m.header.frame_id = "fcu";
+    m.header.frame_id = "world";
     m.header.stamp = ros::Time::now();
     m.id = i;
     m.type = visualization_msgs::Marker::TRIANGLE_LIST;
@@ -112,60 +112,60 @@ void LocalPlannerVisualization::publishFOV(const std::vector<FOV>& fov_vec, floa
   }
 }
 
-void LocalPlannerVisualization::publishRangeScan(const sensor_msgs::LaserScan& scan,
-                                                 const Eigen::Vector3f& newest_position) const {
-  visualization_msgs::Marker m;
-  m.header.frame_id = "local_origin";
-  m.header.stamp = ros::Time::now();
-  m.id = 0;
-  m.type = visualization_msgs::Marker::TRIANGLE_LIST;
-  m.action = visualization_msgs::Marker::ADD;
-  m.scale.x = 1.0;
-  m.scale.y = 1.0;
-  m.scale.z = 1.0;
-  m.color.a = 0.7;
-  m.color.r = 1.0;
-  m.color.g = 1.0;
-  m.color.b = 1.0;
+// void LocalPlannerVisualization::publishRangeScan(const sensor_msgs::LaserScan& scan,
+//                                                  const Eigen::Vector3f& newest_position) const {
+//   visualization_msgs::Marker m;
+//   m.header.frame_id = "local_origin";
+//   m.header.stamp = ros::Time::now();
+//   m.id = 0;
+//   m.type = visualization_msgs::Marker::TRIANGLE_LIST;
+//   m.action = visualization_msgs::Marker::ADD;
+//   m.scale.x = 1.0;
+//   m.scale.y = 1.0;
+//   m.scale.z = 1.0;
+//   m.color.a = 0.7;
+//   m.color.r = 1.0;
+//   m.color.g = 1.0;
+//   m.color.b = 1.0;
 
-  std_msgs::ColorRGBA c;
-  c.a = 0.7;
+//   std_msgs::ColorRGBA c;
+//   c.a = 0.7;
 
-  for (int i = 0; i < scan.ranges.size(); ++i) {
-    PolarPoint p1(0, RAD_TO_DEG * (i + 0.5) * scan.angle_increment, std::min(scan.range_max, scan.ranges[i]));
-    PolarPoint p2(0, RAD_TO_DEG * (i - 0.5) * scan.angle_increment, std::min(scan.range_max, scan.ranges[i]));
+//   for (int i = 0; i < scan.ranges.size(); ++i) {
+//     PolarPoint p1(0, RAD_TO_DEG * (i + 0.5) * scan.angle_increment, std::min(scan.range_max, scan.ranges[i]));
+//     PolarPoint p2(0, RAD_TO_DEG * (i - 0.5) * scan.angle_increment, std::min(scan.range_max, scan.ranges[i]));
 
-    if (std::isnan(scan.ranges[i])) {
-      c.r = 1.0;
-      c.g = 0.0;
-      c.b = 0.0;
-    } else if (scan.ranges[i] > scan.range_max) {
-      c.r = 0.0;
-      c.g = 1.0;
-      c.b = 0.0;
+//     if (std::isnan(scan.ranges[i])) {
+//       c.r = 1.0;
+//       c.g = 0.0;
+//       c.b = 0.0;
+//     } else if (scan.ranges[i] > scan.range_max) {
+//       c.r = 0.0;
+//       c.g = 1.0;
+//       c.b = 0.0;
 
-    } else {
-      c.g = scan.ranges[i] / scan.range_max;
-      c.r = 1.0 - scan.ranges[i] / scan.range_max;
-      c.b = 0.0;
-    }
-    m.colors.push_back(c);
-    m.colors.push_back(c);
-    m.colors.push_back(c);
+//     } else {
+//       c.g = scan.ranges[i] / scan.range_max;
+//       c.r = 1.0 - scan.ranges[i] / scan.range_max;
+//       c.b = 0.0;
+//     }
+//     m.colors.push_back(c);
+//     m.colors.push_back(c);
+//     m.colors.push_back(c);
 
-    // side 1
-    m.points.push_back(toPoint(newest_position));
-    m.points.push_back(toPoint(polarHistogramToCartesian(p1, newest_position)));
-    m.points.push_back(toPoint(polarHistogramToCartesian(p2, newest_position)));
-  }
+//     // side 1
+//     m.points.push_back(toPoint(newest_position));
+//     m.points.push_back(toPoint(polarHistogramToCartesian(p1, newest_position)));
+//     m.points.push_back(toPoint(polarHistogramToCartesian(p2, newest_position)));
+//   }
 
-  range_scan_pub_.publish(m);
-}
+//   range_scan_pub_.publish(m);
+// }
 
 void LocalPlannerVisualization::publishOfftrackPoints(Eigen::Vector3f& closest_pt, Eigen::Vector3f& deg60_pt) {
   visualization_msgs::Marker m;
 
-  m.header.frame_id = "local_origin";
+  m.header.frame_id = "world";
   m.header.stamp = ros::Time::now();
   m.type = visualization_msgs::Marker::SPHERE;
   m.action = visualization_msgs::Marker::ADD;
@@ -195,7 +195,7 @@ void LocalPlannerVisualization::publishOfftrackPoints(Eigen::Vector3f& closest_p
 void LocalPlannerVisualization::publishTree(const std::vector<TreeNode>& tree, const std::vector<int>& closed_set,
                                             const std::vector<Eigen::Vector3f>& path_node_positions) const {
   visualization_msgs::Marker tree_marker;
-  tree_marker.header.frame_id = "local_origin";
+  tree_marker.header.frame_id = "world";
   tree_marker.header.stamp = ros::Time::now();
   tree_marker.id = 0;
   tree_marker.type = visualization_msgs::Marker::LINE_LIST;
@@ -208,7 +208,7 @@ void LocalPlannerVisualization::publishTree(const std::vector<TreeNode>& tree, c
   tree_marker.color.b = 0.6;
 
   visualization_msgs::Marker path_marker;
-  path_marker.header.frame_id = "local_origin";
+  path_marker.header.frame_id = "world";
   path_marker.header.stamp = ros::Time::now();
   path_marker.id = 0;
   path_marker.type = visualization_msgs::Marker::LINE_LIST;
@@ -244,7 +244,7 @@ void LocalPlannerVisualization::publishGoal(const geometry_msgs::Point& goal) co
   visualization_msgs::MarkerArray marker_goal;
   visualization_msgs::Marker m;
 
-  m.header.frame_id = "local_origin";
+  m.header.frame_id = "world";
   m.header.stamp = ros::Time::now();
   m.type = visualization_msgs::Marker::SPHERE;
   m.action = visualization_msgs::Marker::ADD;
@@ -327,7 +327,7 @@ void LocalPlannerVisualization::visualizeWaypoints(const Eigen::Vector3f& goto_p
 
   ros::Time now = ros::Time::now();
 
-  sphere1.header.frame_id = "local_origin";
+  sphere1.header.frame_id = "world";
   sphere1.header.stamp = now;
   sphere1.id = 0;
   sphere1.type = visualization_msgs::Marker::SPHERE;
@@ -345,7 +345,7 @@ void LocalPlannerVisualization::visualizeWaypoints(const Eigen::Vector3f& goto_p
   sphere1.color.g = 1.0;
   sphere1.color.b = 0.0;
 
-  sphere2.header.frame_id = "local_origin";
+  sphere2.header.frame_id = "world";
   sphere2.header.stamp = now;
   sphere2.id = 0;
   sphere2.type = visualization_msgs::Marker::SPHERE;
@@ -363,7 +363,7 @@ void LocalPlannerVisualization::visualizeWaypoints(const Eigen::Vector3f& goto_p
   sphere2.color.g = 1.0;
   sphere2.color.b = 0.0;
 
-  sphere3.header.frame_id = "local_origin";
+  sphere3.header.frame_id = "world";
   sphere3.header.stamp = now;
   sphere3.id = 0;
   sphere3.type = visualization_msgs::Marker::SPHERE;
@@ -392,7 +392,7 @@ void LocalPlannerVisualization::publishPaths(const Eigen::Vector3f& last_positio
                                              const Eigen::Vector3f& newest_adapted_wp) {
   // publish actual path
   visualization_msgs::Marker path_actual_marker;
-  path_actual_marker.header.frame_id = "local_origin";
+  path_actual_marker.header.frame_id = "world";
   path_actual_marker.header.stamp = ros::Time::now();
   path_actual_marker.id = path_length_;
   path_actual_marker.type = visualization_msgs::Marker::LINE_STRIP;
@@ -410,7 +410,7 @@ void LocalPlannerVisualization::publishPaths(const Eigen::Vector3f& last_positio
 
   // publish path set by calculated waypoints
   visualization_msgs::Marker path_waypoint_marker;
-  path_waypoint_marker.header.frame_id = "local_origin";
+  path_waypoint_marker.header.frame_id = "world";
   path_waypoint_marker.header.stamp = ros::Time::now();
   path_waypoint_marker.id = path_length_;
   path_waypoint_marker.type = visualization_msgs::Marker::LINE_STRIP;
@@ -428,7 +428,7 @@ void LocalPlannerVisualization::publishPaths(const Eigen::Vector3f& last_positio
 
   // publish path set by calculated waypoints
   visualization_msgs::Marker path_adapted_waypoint_marker;
-  path_adapted_waypoint_marker.header.frame_id = "local_origin";
+  path_adapted_waypoint_marker.header.frame_id = "world";
   path_adapted_waypoint_marker.header.stamp = ros::Time::now();
   path_adapted_waypoint_marker.id = path_length_;
   path_adapted_waypoint_marker.type = visualization_msgs::Marker::LINE_STRIP;
@@ -451,7 +451,7 @@ void LocalPlannerVisualization::publishCurrentSetpoint(const geometry_msgs::Twis
                                                        const PlannerState& waypoint_type,
                                                        const Eigen::Vector3f& newest_position) const {
   visualization_msgs::Marker setpoint;
-  setpoint.header.frame_id = "local_origin";
+  setpoint.header.frame_id = "world";
   setpoint.header.stamp = ros::Time::now();
   setpoint.id = 0;
   setpoint.type = visualization_msgs::Marker::ARROW;

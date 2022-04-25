@@ -141,6 +141,7 @@ set(LOCAL_PLANNER_CPP_FILES   "src/nodes/local_planner.cpp"
                               "src/nodes/tree_node.cpp"
                               "src/nodes/star_planner.cpp"
                               "src/nodes/planner_functions.cpp"
+                              "src/nodes/local_planner_visualization.cpp"
 )
 
 add_library(local_planner     "${LOCAL_PLANNER_CPP_FILES}")

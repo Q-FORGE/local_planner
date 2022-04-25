@@ -51,8 +51,8 @@ class WaypointGenerator : public usm::StateMachine<PlannerState> {
   ros::Time last_time_{99999.};
   ros::Time current_time_{99999.};
 
-  float smoothing_speed_xy_{10.f};
-  float smoothing_speed_z_{3.0f};
+  float smoothing_speed_xy_{5.f};
+  float smoothing_speed_z_{2.0f};
 
   bool is_airborne_ = false;
   bool is_land_waypoint_{false};
@@ -190,7 +190,7 @@ class WaypointGenerator : public usm::StateMachine<PlannerState> {
   * @param[in] deg60_pt, 60 degrees angle entry point to line previous to
   * current goal from current vehicle postion
   **/
-  // void getOfftrackPointsForVisualization(Eigen::Vector3f& closest_pt, Eigen::Vector3f& deg60_pt);
+  void getOfftrackPointsForVisualization(Eigen::Vector3f& closest_pt, Eigen::Vector3f& deg60_pt);
 
   WaypointGenerator();
   virtual ~WaypointGenerator() = default;

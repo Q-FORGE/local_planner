@@ -96,22 +96,22 @@ void LocalPlanner::create2DObstacleRepresentation(const bool send_to_fcu) {
   polar_histogram_ = new_histogram;
 
   // generate histogram image for logging
-  // generateHistogramImage(polar_histogram_);
+  generateHistogramImage(polar_histogram_);
 }
 
-// void LocalPlanner::generateHistogramImage(Histogram& histogram) {
-//   histogram_image_data_.clear();
-//   histogram_image_data_.reserve(GRID_LENGTH_E * GRID_LENGTH_Z);
+void LocalPlanner::generateHistogramImage(Histogram& histogram) {
+  histogram_image_data_.clear();
+  histogram_image_data_.reserve(GRID_LENGTH_E * GRID_LENGTH_Z);
 
-//   // fill image data
-//   for (int e = GRID_LENGTH_E - 1; e >= 0; e--) {
-//     for (int z = 0; z < GRID_LENGTH_Z; z++) {
-//       float dist = histogram.get_dist(e, z);
-//       float depth_val = dist > 0.01f ? 255.f - 255.f * dist / max_sensor_range_ : 0.f;
-//       histogram_image_data_.push_back((int)std::max(0.0f, std::min(255.f, depth_val)));
-//     }
-//   }
-// }
+  // fill image data
+  for (int e = GRID_LENGTH_E - 1; e >= 0; e--) {
+    for (int z = 0; z < GRID_LENGTH_Z; z++) {
+      float dist = histogram.get_dist(e, z);
+      float depth_val = dist > 0.01f ? 255.f - 255.f * dist / max_sensor_range_ : 0.f;
+      histogram_image_data_.push_back((int)std::max(0.0f, std::min(255.f, depth_val)));
+    }
+  }
+}
 
 void LocalPlanner::determineStrategy() {
   // clear cost image
@@ -147,41 +147,41 @@ void LocalPlanner::determineStrategy() {
   }
 }
 
-// void LocalPlanner::updateObstacleDistanceMsg(Histogram hist) {
-//   sensor_msgs::LaserScan msg = {};
-//   msg.header.stamp = ros::Time::now();
-//   msg.header.frame_id = "local_origin";
-//   msg.angle_increment = static_cast<double>(ALPHA_RES) * M_PI / 180.0;
-//   msg.range_min = min_sensor_range_;
-//   msg.range_max = max_sensor_range_;
-//   msg.ranges.reserve(GRID_LENGTH_Z);
+void LocalPlanner::updateObstacleDistanceMsg(Histogram hist) {
+  sensor_msgs::LaserScan msg = {};
+  msg.header.stamp = ros::Time::now();
+  msg.header.frame_id = "world";
+  msg.angle_increment = static_cast<double>(ALPHA_RES) * M_PI / 180.0;
+  msg.range_min = min_sensor_range_;
+  msg.range_max = max_sensor_range_;
+  msg.ranges.reserve(GRID_LENGTH_Z);
 
-//   for (int i = 0; i < GRID_LENGTH_Z; ++i) {
-//     // turn idxs 180 degress to point to local north instead of south
-//     int j = (i + GRID_LENGTH_Z / 2) % GRID_LENGTH_Z;
-//     float dist = hist.get_dist(0, j);
+  for (int i = 0; i < GRID_LENGTH_Z; ++i) {
+    // turn idxs 180 degress to point to local north instead of south
+    int j = (i + GRID_LENGTH_Z / 2) % GRID_LENGTH_Z;
+    float dist = hist.get_dist(0, j);
 
-//     // is bin inside FOV?
-//     if (histogramIndexYawInsideFOV(fov_fcu_frame_, j, position_, yaw_fcu_frame_deg_)) {
-//       msg.ranges.push_back(dist > min_sensor_range_ ? dist : max_sensor_range_ + 0.01f);
-//     } else {
-//       msg.ranges.push_back(NAN);
-//     }
-//   }
+    // is bin inside FOV?
+    if (histogramIndexYawInsideFOV(fov_fcu_frame_, j, position_, yaw_fcu_frame_deg_)) {
+      msg.ranges.push_back(dist > min_sensor_range_ ? dist : max_sensor_range_ + 0.01f);
+    } else {
+      msg.ranges.push_back(NAN);
+    }
+  }
 
-//   distance_data_ = msg;
-// }
+  distance_data_ = msg;
+}
 
-// void LocalPlanner::updateObstacleDistanceMsg() {
-//   sensor_msgs::LaserScan msg = {};
-//   msg.header.stamp = ros::Time::now();
-//   msg.header.frame_id = "local_origin";
-//   msg.angle_increment = static_cast<double>(ALPHA_RES) * M_PI / 180.0;
-//   msg.range_min = min_sensor_range_;
-//   msg.range_max = max_sensor_range_;
+void LocalPlanner::updateObstacleDistanceMsg() {
+  sensor_msgs::LaserScan msg = {};
+  msg.header.stamp = ros::Time::now();
+  msg.header.frame_id = "world";
+  msg.angle_increment = static_cast<double>(ALPHA_RES) * M_PI / 180.0;
+  msg.range_min = min_sensor_range_;
+  msg.range_max = max_sensor_range_;
 
-//   distance_data_ = msg;
-// }
+  distance_data_ = msg;
+}
 
 Eigen::Vector3f LocalPlanner::getPosition() const { return position_; }
 
@@ -193,13 +193,13 @@ void LocalPlanner::setDefaultParameters() {
   px4_.param_mpc_jerk_max = 20.f;
   px4_.param_mpc_acc_up_max = 10.f;
   px4_.param_mpc_z_vel_max_up = 3.f;
-  px4_.param_mpc_acc_down_max = 10.f;
+  px4_.param_mpc_acc_down_max = 2.5f;
   px4_.param_mpc_z_vel_max_dn = 1.f;
-  px4_.param_mpc_acc_hor = 2.75f;
-  px4_.param_mpc_xy_cruise = 5.f;
+  px4_.param_mpc_acc_hor = 2.5f;
+  px4_.param_mpc_xy_cruise = 4.f;
   px4_.param_mpc_tko_speed = 1.f;
   px4_.param_mpc_land_speed = 0.7f;
-  px4_.param_cp_dist = 0.25f;
+  px4_.param_cp_dist = -0.1f;
 }
 
 void LocalPlanner::getTree(std::vector<TreeNode>& tree, std::vector<int>& closed_set,
@@ -209,9 +209,9 @@ void LocalPlanner::getTree(std::vector<TreeNode>& tree, std::vector<int>& closed
   path_node_positions = star_planner_->path_node_positions_;
 }
 
-// void LocalPlanner::getObstacleDistanceData(sensor_msgs::LaserScan& obstacle_distance) {
-//   obstacle_distance = distance_data_;
-// }
+void LocalPlanner::getObstacleDistanceData(sensor_msgs::LaserScan& obstacle_distance) {
+  obstacle_distance = distance_data_;
+}
 
 avoidanceOutput LocalPlanner::getAvoidanceOutput() const {
   avoidanceOutput out;

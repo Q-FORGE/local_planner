@@ -3,7 +3,7 @@
 
 #include "avoidance/transform_buffer.h"
 #include "local_planner/avoidance_output.h"
-// #include "local_planner/local_planner_visualization.h"
+#include "local_planner/local_planner_visualization.h"
 
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PoseArray.h>
@@ -26,8 +26,8 @@
 #include <std_msgs/Float64.h>
 #include <std_msgs/String.h>
 #include <tf/transform_listener.h>
-// #include <visualization_msgs/Marker.h>
-// #include <visualization_msgs/MarkerArray.h>
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 #include <Eigen/Core>
 #include <boost/bind.hpp>
 
@@ -93,6 +93,8 @@ class LocalPlannerNodelet : public nodelet::Nodelet {
 
   std::mutex running_mutex_;  ///< guard against concurrent access to input &
                               /// output data (point cloud, position, ...)
+
+  LocalPlannerVisualization visualizer_;
 
   bool position_received_ = false;
 
@@ -164,6 +166,7 @@ class LocalPlannerNodelet : public nodelet::Nodelet {
   // Publishers
   ros::Publisher mavros_pos_setpoint_pub_;
   ros::Publisher mavros_vel_setpoint_pub_;
+  ros::Publisher transformed_cloud_;
   // ros::Publisher mavros_obstacle_free_path_pub_;
   // ros::Publisher mavros_obstacle_distance_pub_;
   // ros::Publisher mavros_system_status_pub_;

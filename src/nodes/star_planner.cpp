@@ -11,16 +11,16 @@ namespace avoidance {
 StarPlanner::StarPlanner() {}
 
 // set parameters changed by dynamic rconfigure
-void StarPlanner::dynamicReconfigureSetStarParams(const avoidance::LocalPlannerNodeConfig& config, uint32_t level) {
-  children_per_node_ = config.children_per_node_;
-  n_expanded_nodes_ = config.n_expanded_nodes_;
-  tree_node_distance_ = static_cast<float>(config.tree_node_distance_);
-  max_path_length_ = static_cast<float>(config.max_sensor_range_);
-  smoothing_margin_degrees_ = static_cast<float>(config.smoothing_margin_degrees_);
-  tree_heuristic_weight_ = static_cast<float>(config.tree_heuristic_weight_);
-  max_sensor_range_ = static_cast<float>(config.max_sensor_range_);
-  min_sensor_range_ = static_cast<float>(config.min_sensor_range_);
-}
+// void StarPlanner::dynamicReconfigureSetStarParams(const avoidance::LocalPlannerNodeConfig& config, uint32_t level) {
+//   children_per_node_ = config.children_per_node_;
+//   n_expanded_nodes_ = config.n_expanded_nodes_;
+//   tree_node_distance_ = static_cast<float>(config.tree_node_distance_);
+//   max_path_length_ = static_cast<float>(config.max_sensor_range_);
+//   smoothing_margin_degrees_ = static_cast<float>(config.smoothing_margin_degrees_);
+//   tree_heuristic_weight_ = static_cast<float>(config.tree_heuristic_weight_);
+//   max_sensor_range_ = static_cast<float>(config.max_sensor_range_);
+//   min_sensor_range_ = static_cast<float>(config.min_sensor_range_);
+// }
 
 void StarPlanner::setParams(costParameters cost_params) { cost_params_ = cost_params; }
 
