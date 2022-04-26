@@ -20,12 +20,12 @@ namespace avoidance {
 class TreeNode;
 
 class StarPlanner {
-  int children_per_node_ = 20;
-  int n_expanded_nodes_ = 5;
-  float tree_node_distance_ = 0.5f;
-  float max_path_length_ = 8.f;
-  float smoothing_margin_degrees_ = 30.f;
-  float tree_heuristic_weight_ = 10.0f;
+  int children_per_node_ = 8;
+  int n_expanded_nodes_ = 50;
+  float tree_node_distance_ = 2.f;
+  float max_path_length_ = 3.f;
+  float smoothing_margin_degrees_ = 45.f;
+  float tree_heuristic_weight_ = 30.0f;
   float max_sensor_range_ = 10.f;
   float min_sensor_range_ = 0.8f;
 

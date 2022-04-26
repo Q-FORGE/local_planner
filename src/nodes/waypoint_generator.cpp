@@ -104,6 +104,7 @@ usm::Transition WaypointGenerator::runTryPath() {
 }
 
 usm::Transition WaypointGenerator::runAltitudeChange() {
+  ROS_INFO("TEST ALTITUDE CHANGE");
   if (state_changed_) {
     yaw_reach_height_rad_ = curr_yaw_rad_;
     change_altitude_pos_ = position_;

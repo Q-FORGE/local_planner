@@ -199,7 +199,7 @@ void LocalPlanner::setDefaultParameters() {
   px4_.param_mpc_xy_cruise = 4.f;
   px4_.param_mpc_tko_speed = 1.f;
   px4_.param_mpc_land_speed = 0.7f;
-  px4_.param_cp_dist = -0.1f;
+  px4_.param_cp_dist = 0.5f;
 }
 
 void LocalPlanner::getTree(std::vector<TreeNode>& tree, std::vector<int>& closed_set,

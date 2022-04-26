@@ -38,10 +38,10 @@ class LocalPlanner {
   int n_expanded_nodes_;
   int min_num_points_per_cell_ = 20;
 
-  float min_sensor_range_ = 0.8f;
-  float max_sensor_range_ = 10.0f;
-  float smoothing_margin_degrees_ = 30.f;
-  float max_point_age_s_ = 10;
+  float min_sensor_range_ = 0.7f;
+  float max_sensor_range_ = 12.0f;
+  float smoothing_margin_degrees_ = 45.f;
+  float max_point_age_s_ = 400;
   float yaw_fcu_frame_deg_ = 0.0f;
   float pitch_fcu_frame_deg_ = 0.0f;
 
