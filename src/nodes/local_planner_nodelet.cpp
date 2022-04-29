@@ -85,7 +85,8 @@ void LocalPlannerNodelet::InitializeNodelet() {
   // goal_topic_sub_ = nh_.subscribe("/input/goal_position", 1, &LocalPlannerNodelet::updateGoalCallback, this);
   // distance_sensor_sub_ = nh_.subscribe("/mavros/altitude", 1, &LocalPlannerNodelet::distanceSensorCallback, this);
   // mavros_vel_setpoint_pub_ = nh_.advertise<geometry_msgs::Twist>("/mavros/setpoint_velocity/cmd_vel_unstamped", 10);
-  mavros_pos_setpoint_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("/red/tracker/input_pose", 10);
+  // mavros_pos_setpoint_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("/red/tracker/input_pose", 10);
+  pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("output_pose", 10);
   transformed_cloud_ = nh_.advertise<sensor_msgs::PointCloud2>("transformed_cloud", 10);
   // mavros_obstacle_free_path_pub_ = nh_.advertise<mavros_msgs::Trajectory>("/mavros/trajectory/generated", 10);
   // mavros_obstacle_distance_pub_ = nh_.advertise<sensor_msgs::LaserScan>("/mavros/obstacle/send", 10);
@@ -324,7 +325,7 @@ void LocalPlannerNodelet::calculateWaypoints(bool hover) {
 
   if (publish_target_){
     ROS_DEBUG("Waypoint Published");
-    mavros_pos_setpoint_pub_.publish(toPoseStamped(result.position_wp, result.orientation_wp));
+    pose_pub_.publish(toPoseStamped(result.position_wp, result.orientation_wp));
     publish_target_ = false;
     last_pub_ = ros::Time::now();
   }
@@ -446,7 +447,8 @@ void LocalPlannerNodelet::pointCloudCallback(const sensor_msgs::PointCloud2::Con
     // ROS_ERROR(transform_frames.first.c_str());
     transform_frames.second = "world";
     buffered_transforms_.push_back(transform_frames);
-    transform_frames.second = "/red/camera_box";
+    // transform_frames.second = "/red/camera_box";
+    transform_frames.second = "world";
     buffered_transforms_.push_back(transform_frames);
     cameras_[index].transform_registered_ = true;
   }

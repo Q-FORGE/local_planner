@@ -167,6 +167,7 @@ class LocalPlannerNodelet : public nodelet::Nodelet {
   ros::Publisher mavros_pos_setpoint_pub_;
   ros::Publisher mavros_vel_setpoint_pub_;
   ros::Publisher transformed_cloud_;
+  ros::Publisher pose_pub_;
   // ros::Publisher mavros_obstacle_free_path_pub_;
   // ros::Publisher mavros_obstacle_distance_pub_;
   // ros::Publisher mavros_system_status_pub_;
