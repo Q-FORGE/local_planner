@@ -176,8 +176,8 @@ void LocalPlannerNodelet::updatePlannerInfo() {
       std::swap(local_planner_->original_cloud_vector_[i], cameras_[i].transformed_cloud_);
       cameras_[i].transformed_cloud_.clear();
       cameras_[i].transformed_ = false;
-      // local_planner_->setFOV(i, cameras_[i].fov_fcu_frame_);
-      // wp_generator_->setFOV(i, cameras_[i].fov_fcu_frame_);
+      local_planner_->setFOV(i, cameras_[i].fov_fcu_frame_);
+      wp_generator_->setFOV(i, cameras_[i].fov_fcu_frame_);
     } catch (tf::TransformException& ex) {
       ROS_ERROR("Received an exception trying to transform a pointcloud: %s", ex.what());
     }
@@ -319,7 +319,7 @@ void LocalPlannerNodelet::calculateWaypoints(bool hover) {
 
   ros::Time now = ros::Time::now();
   ros::Duration since_last_pub_ = now - last_pub_;
-  if (since_last_pub_ >= ros::Duration(1.)){
+  if (since_last_pub_ >= ros::Duration(.25)){ // changed from 1.0 JE
     publish_target_ = true;
   }
 
