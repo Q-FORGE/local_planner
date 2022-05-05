@@ -36,9 +36,9 @@ class LocalPlanner {
  private:
   int children_per_node_;
   int n_expanded_nodes_;
-  int min_num_points_per_cell_ = 4;
+  int min_num_points_per_cell_ = 50;
 
-  float min_sensor_range_ = 0.3f;
+  float min_sensor_range_ = 0.6f;
   float max_sensor_range_ = 12.0f; // changed from 12 JE
   float smoothing_margin_degrees_ = 45.f;
   float max_point_age_s_ = 3000; //changed from 400 JE
