@@ -76,7 +76,7 @@ void LocalPlannerNodelet::InitializeNodelet() {
   //                                                              &LocalPlannerNodelet::positionCallback, this);
   // velocity_sub_ = nh_.subscribe<const geometry_msgs::TwistStamped&>("/red/carrot/velocity", 1,
   //                                                                   &LocalPlannerNodelet::velocityCallback, this);
-  odom_sub_ = nh_.subscribe<const nav_msgs::Odometry&>("/red/odometry", 1,
+  odom_sub_ = nh_.subscribe<const nav_msgs::Odometry&>("/hawk2/vrpn_client/estimated_odometry", 1,
                                                                     &LocalPlannerNodelet::odomCallback, this);
   state_sub_ = nh_.subscribe("/red/challenge_started", 1, &LocalPlannerNodelet::stateCallback, this);
   // clicked_point_sub_ = nh_.subscribe("/clicked_point", 1, &LocalPlannerNodelet::clickedPointCallback, this);
@@ -445,10 +445,10 @@ void LocalPlannerNodelet::pointCloudCallback(const sensor_msgs::PointCloud2::Con
     std::pair<std::string, std::string> transform_frames;
     transform_frames.first = msg->header.frame_id;
     // ROS_ERROR(transform_frames.first.c_str());
-    transform_frames.second = "world";
+    transform_frames.second = "optitrack";
     buffered_transforms_.push_back(transform_frames);
     // transform_frames.second = "/red/camera_box";
-    transform_frames.second = "world";
+    transform_frames.second = "optitrack";
     buffered_transforms_.push_back(transform_frames);
     cameras_[index].transform_registered_ = true;
   }
@@ -545,7 +545,7 @@ void LocalPlannerNodelet::pointCloudTransformThread(int index) {
         //                             pcl_conversions::fromPCL(cameras_[index].untransformed_cloud_.header.stamp),
         //                             fcu_transform));
 
-        if (tf_buffer_.getTransform(cameras_[index].untransformed_cloud_.header.frame_id, "world",
+        if (tf_buffer_.getTransform(cameras_[index].untransformed_cloud_.header.frame_id, "optitrack",
                                     pcl_conversions::fromPCL(cameras_[index].untransformed_cloud_.header.stamp),
                                     cloud_transform)) {
           // remove nan padding and compute fov
@@ -558,7 +558,7 @@ void LocalPlannerNodelet::pointCloudTransformThread(int index) {
           // transform cloud to /local_origin frame
           pcl_ros::transformPointCloud(cameras_[index].untransformed_cloud_, cameras_[index].transformed_cloud_,
                                        cloud_transform);
-          cameras_[index].transformed_cloud_.header.frame_id = "world";
+          cameras_[index].transformed_cloud_.header.frame_id = "optitrack";
           cameras_[index].transformed_cloud_.header.stamp = cameras_[index].untransformed_cloud_.header.stamp;
 
           transformed_cloud_.publish(cameras_[index].transformed_cloud_);
